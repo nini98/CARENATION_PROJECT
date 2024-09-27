@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carenation.carenation_project.mapper.CarMapper">
+
+    <select id="selectCarList" parameterType="CarSearchRequestDTO" resultType="CarResponseDTO">
+        SELECT CAR_ID,
+               CATEGORY_ID,
+               MANUFACTURER,
+               MODEL_NAME,
+               MANUFACTURE_YEAR,
+               RENTAL_STATUS
+        FROM CAR
+            <where>
+                <if test="carId != null">
+                    CAR_ID = #{carId}
+                </if>
+                <if test="categoryId != null">
+                    AND CATEGORY_ID = #{categoryId}
+                </if>
+                <if test="manufacturer != null and manufacturer != ''">
+                    AND MANUFACTURER = #{manufacturer}
+                </if>
+                <if test="modelName != null and modelName != ''">
+                    AND MODEL_NAME = #{modelName}
+                </if>
+                <if test="manufactureYear != null">
+                    AND MANUFACTURE_YEAR = #{manufactureYear}
+                </if>
+                <if test="rentalStatus != null">
+                    AND RENTAL_STATUS = #{rentalStatus}
+                </if>
+            </where>
+        ORDER BY CAR_ID
+    </select>
+
+    <select id="selectCarById" parameterType="int" resultType="CarResponseDTO">
+        SELECT CAR_ID,
+               CATEGORY_ID,
+               MANUFACTURER,
+               MODEL_NAME,
+               MANUFACTURE_YEAR,
+               RENTAL_STATUS
+        FROM CAR
+        WHERE CAR_ID = #{carId}
+    </select>
+
+    <insert id="insertCar" parameterType="CarRegistRequestDTO">
+        INSERT INTO CAR
+               (CATEGORY_ID,
+               MANUFACTURER,
+               MODEL_NAME,
+               MANUFACTURE_YEAR)
+        VALUES
+            (#{categoryId},
+             #{manufacturer},
+             #{modelName},
+             #{manufactureYear})
+    </insert>
+
+    <update id="updateCar" parameterType="CarModifyRequestDTO">
+        UPDATE CAR
+        SET
+            CATEGORY_ID = #{categoryId},
+            MANUFACTURER = #{manufacturer},
+            MODEL_NAME = #{modelName},
+            MANUFACTURE_YEAR = #{manufactureYear},
+            RENTAL_STATUS = #{rentalStatus}
+        WHERE CAR_ID = #{carId}
+    </update>
+
+</mapper>

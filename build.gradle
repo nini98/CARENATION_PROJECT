@@ -1,0 +1,63 @@
+plugins {
+    id 'java'
+    id 'war'
+    id 'org.springframework.boot' version '3.3.4'
+    id 'io.spring.dependency-management' version '1.1.6'
+}
+
+group = 'com.carenation'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+//    implementation 'org.springframework.boot:spring-boot-starter-web'
+//    compileOnly 'org.projectlombok:lombok'
+//    annotationProcessor 'org.projectlombok:lombok'
+//    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+//    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+//    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // Spring
+    implementation 'org.springframework.boot:spring-boot-starter-web:3.3.0'
+    implementation 'org.springframework.boot:spring-boot-starter-web-services:3.3.0'
+    implementation 'org.springframework.boot:spring-boot-starter-validation:3.3.0'
+
+    // Spring AOP
+    implementation 'org.springframework.boot:spring-boot-starter-aop:3.3.0'
+
+    // Mybatis
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok:1.18.32'
+    annotationProcessor 'org.projectlombok:lombok:1.18.32'
+
+    // MySQL
+    runtimeOnly 'com.mysql:mysql-connector-j:8.3.0'
+
+    // TEST
+    testImplementation 'org.springframework.boot:spring-boot-starter-test:3.3.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
+
+    // 개발환경 툴
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

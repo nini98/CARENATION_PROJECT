@@ -1,21 +1,15 @@
 package com.carenation.carenation_project.mapper;
 
-import java.util.List;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-import org.apache.ibatis.annotations.Mapper;
-
-import com.carenation.carenation_project.dto.request.CarModifyRequestDTO;
-import com.carenation.carenation_project.dto.request.CarRegistRequestDTO;
-import com.carenation.carenation_project.dto.request.CarSearchRequestDTO;
+import com.carenation.carenation_project.config.MapStructMapperConfig;
 import com.carenation.carenation_project.dto.response.CarResponseDTO;
+import com.carenation.carenation_project.entity.Car;
 
-@Mapper
+@Mapper(config = MapStructMapperConfig.class)
 public interface CarMapper {
-	List<CarResponseDTO> selectCarList(CarSearchRequestDTO params);
 
-	CarResponseDTO selectCarById(int carId);
-
-	void insertCar(CarRegistRequestDTO params);
-
-	void updateCar(CarModifyRequestDTO params);
+	@Mapping(source = "category.name", target = "categoryName")
+	CarResponseDTO toCarResponseDTO(Car car);
 }

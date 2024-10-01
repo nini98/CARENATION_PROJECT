@@ -5,10 +5,6 @@ import org.springframework.data.jpa.domain.Specification;
 import com.carenation.carenation_project.entity.Car;
 
 public class CarSpecification {
-	public static Specification<Car> hasCategoryId(Integer categoryId) {
-		return (root, query, builder) -> categoryId == null ? null : builder.equal(root.get("category").get("categoryId"), categoryId);
-	}
-
 	public static Specification<Car> hasManufacturer(String manufacturer) {
 		return (root, query, builder) -> manufacturer == null ? null : builder.equal(root.get("manufacturer"), manufacturer);
 	}

@@ -1,51 +1,68 @@
 package com.carenation.carenation_project.entity;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
+@Setter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "car")
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 public class Car {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(nullable = false)
-	private Integer carId;
+	@Column(name = "CAR_ID")
+	private Long carId;
 
-	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "CATEGORY_ID", nullable = false)
-	private Category category;
-
-	@Column(length = 100, nullable = false)
+	@Column(name = "MANUFACTURER", nullable = false)
 	private String manufacturer;
 
-	@Column(length = 100, nullable = false)
+	@Column(name = "MODEL_NAME", nullable = false)
 	private String modelName;
 
-	@Column(nullable = false)
+	@Column(name = "MANUFACTURE_YEAR", nullable = false)
 	private Integer manufactureYear;
 
-	@Column(nullable = false)
+	@Column(name = "RENTAL_STATUS", nullable = false)
 	private Boolean rentalStatus;
 
-	@Builder
-	public Car(Integer carId, Category category, String manufacturer, String modelName, Integer manufactureYear, Boolean rentalStatus) {
-		this.carId = carId;
-		this.category = category;
-		this.manufacturer = manufacturer;
-		this.modelName = modelName;
-		this.manufactureYear = manufactureYear;
-		this.rentalStatus = rentalStatus;
-	}
+	@CreatedDate
+	@Column(name = "CREATED_AT", nullable = false, updatable = false)
+	private LocalDateTime createdAt;
+
+	@LastModifiedDate
+	@Column(name = "UPDATED_AT")
+	private LocalDateTime updatedAt;
+
+	@ManyToMany
+	@JoinTable(
+		name = "car_category",
+		joinColumns = @JoinColumn(name = "CAR_ID"),
+		inverseJoinColumns = @JoinColumn(name = "CATEGORY_ID")
+	)
+	private Set<Category> categories = new HashSet<>();
 }

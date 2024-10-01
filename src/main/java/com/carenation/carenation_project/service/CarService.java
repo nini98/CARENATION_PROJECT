@@ -1,14 +1,18 @@
 package com.carenation.carenation_project.service;
 
+import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.carenation.carenation_project.common.exception.CarenationException;
+import com.carenation.carenation_project.common.response.ResultCode;
 import com.carenation.carenation_project.dto.request.CarModifyRequestDTO;
 import com.carenation.carenation_project.dto.request.CarRegistRequestDTO;
 import com.carenation.carenation_project.dto.request.CarSearchRequestDTO;
@@ -16,7 +20,6 @@ import com.carenation.carenation_project.dto.response.CarResponseDTO;
 import com.carenation.carenation_project.entity.Car;
 import com.carenation.carenation_project.entity.Category;
 import com.carenation.carenation_project.mapper.CarMapper;
-import com.carenation.carenation_project.common.response.ResultCode;
 import com.carenation.carenation_project.repository.CarRepository;
 import com.carenation.carenation_project.repository.CategoryRepository;
 import com.carenation.carenation_project.specification.CarSpecification;
@@ -34,36 +37,46 @@ public class CarService {
 		Category category = categoryRepository.findById(params.getCategoryId())
 			.orElseThrow(() -> new CarenationException(ResultCode.NO_DATA_FOUND));
 
-		boolean carExists = carRepository.existsByCategoryAndManufacturerAndModelNameAndManufactureYear(
-			category, params.getManufacturer(), params.getModelName(), params.getManufactureYear());
+		boolean carExists = carRepository.existsByManufacturerAndModelNameAndManufactureYear(
+			params.getManufacturer(), params.getModelName(), params.getManufactureYear());
 
 		if (carExists) {
 			throw new CarenationException(ResultCode.DUPLICATE_DATA);
 		}
 
 		Car car = Car.builder()
-			.category(category)
 			.manufacturer(params.getManufacturer())
 			.modelName(params.getModelName())
 			.manufactureYear(params.getManufactureYear())
 			.rentalStatus(true)
+			.categories(new HashSet<>(List.of(category)))
 			.build();
 
 		carRepository.save(car);
 	}
 
 	@Transactional(readOnly = true)
-	public List<CarResponseDTO> getCarList(CarSearchRequestDTO params) {
-		Specification<Car> spec = Specification.where(CarSpecification.hasCategoryId(params.getCategoryId()))
-			.and(CarSpecification.hasManufacturer(params.getManufacturer()))
-			.and(CarSpecification.hasModelName(params.getModelName()))
-			.and(CarSpecification.hasManufactureYear(params.getManufactureYear()))
-			.and(CarSpecification.isRentalAvailable(params.getRentalStatus()));
+	public CarResponseDTO getCarRentalStatus(Integer carId) {
+		Car car = carRepository.findById(carId)
+			.orElseThrow(() -> new CarenationException(ResultCode.NO_DATA_FOUND));
 
-		List<Car> cars = carRepository.findAll(spec, Sort.by("category.categoryId"));
-		return cars.stream()
-			.map(carMapper::toCarResponseDTO)
-			.collect(Collectors.toList());
+		if (!car.getRentalStatus()) {
+			throw new CarenationException(ResultCode.CAR_NOT_AVAILABLE);
+		}
+
+		return carMapper.toCarResponseDTO(car);
+	}
+
+	@Transactional(readOnly = true)
+	public Page<CarResponseDTO> getCarList(CarSearchRequestDTO params) {
+		Pageable pageable = PageRequest.of(params.getPage(), params.getSize(), Sort.by("manufactureYear").descending());
+
+		Specification<Car> spec = Specification.where(CarSpecification.hasManufacturer(params.getManufacturer()))
+			.and(CarSpecification.hasModelName(params.getModelName()))
+			.and(CarSpecification.hasManufactureYear(params.getManufactureYear()));
+
+		Page<Car> cars = carRepository.findAll(spec, pageable);
+		return cars.map(carMapper::toCarResponseDTO);
 	}
 
 	public void modifyCar(CarModifyRequestDTO params) {
@@ -73,15 +86,12 @@ public class CarService {
 		Category category = categoryRepository.findById(params.getCategoryId())
 			.orElseThrow(() -> new CarenationException(ResultCode.NO_DATA_FOUND));
 
-		Car updatedCar = Car.builder()
-			.carId(existingCar.getCarId())
-			.category(category)
-			.manufacturer(params.getManufacturer())
-			.modelName(params.getModelName())
-			.manufactureYear(params.getManufactureYear())
-			.rentalStatus(params.getRentalStatus())
-			.build();
+		existingCar.setManufacturer(params.getManufacturer());
+		existingCar.setModelName(params.getModelName());
+		existingCar.setManufactureYear(params.getManufactureYear());
+		existingCar.setRentalStatus(params.getRentalStatus());
+		existingCar.setCategories(new HashSet<>(List.of(category)));
 
-		carRepository.save(updatedCar);
+		carRepository.save(existingCar);
 	}
 }

@@ -6,10 +6,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class CarSearchRequestDTO {
-	private final String manufacturer;
-	private final String modelName;
-	private final Integer manufactureYear;
+public class CarCategorySearchRequestDTO {
 	@NotNull
 	private final Integer page;
 	@NotNull

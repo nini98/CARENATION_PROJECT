@@ -34,6 +34,13 @@ public class CarService {
 		Category category = categoryRepository.findById(params.getCategoryId())
 			.orElseThrow(() -> new CarenationException(ResultCode.NO_DATA_FOUND));
 
+		boolean carExists = carRepository.existsByCategoryAndManufacturerAndModelNameAndManufactureYear(
+			category, params.getManufacturer(), params.getModelName(), params.getManufactureYear());
+
+		if (carExists) {
+			throw new CarenationException(ResultCode.DUPLICATE_DATA);
+		}
+
 		Car car = Car.builder()
 			.category(category)
 			.manufacturer(params.getManufacturer())

@@ -9,8 +9,6 @@ import com.carenation.carenation_project.entity.Car;
 import com.carenation.carenation_project.entity.Category;
 
 public interface CarRepository extends JpaRepository<Car, Integer>, JpaSpecificationExecutor<Car> {
-	boolean existsByManufacturerAndModelNameAndManufactureYear(String manufacturer, String modelName, int manufactureYear);
-
 	Page<Car> findByCategories(Category category, Pageable pageable);
 
 }

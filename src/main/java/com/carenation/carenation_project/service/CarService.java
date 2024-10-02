@@ -37,13 +37,6 @@ public class CarService {
 		Category category = categoryRepository.findById(params.getCategoryId())
 			.orElseThrow(() -> new CarenationException(ResultCode.NO_DATA_FOUND));
 
-		boolean carExists = carRepository.existsByManufacturerAndModelNameAndManufactureYear(
-			params.getManufacturer(), params.getModelName(), params.getManufactureYear());
-
-		if (carExists) {
-			throw new CarenationException(ResultCode.DUPLICATE_DATA);
-		}
-
 		Car car = Car.builder()
 			.manufacturer(params.getManufacturer())
 			.modelName(params.getModelName())
@@ -59,10 +52,6 @@ public class CarService {
 	public CarResponseDTO getCarRentalStatus(Integer carId) {
 		Car car = carRepository.findById(carId)
 			.orElseThrow(() -> new CarenationException(ResultCode.NO_DATA_FOUND));
-
-		if (!car.getRentalStatus()) {
-			throw new CarenationException(ResultCode.CAR_NOT_AVAILABLE);
-		}
 
 		return carMapper.toCarResponseDTO(car);
 	}

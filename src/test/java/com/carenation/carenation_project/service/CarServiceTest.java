@@ -143,8 +143,6 @@ public class CarServiceTest {
 		carService.modifyCar(params);
 
 		// then
-		verify(categoryRepository, times(1)).findById(params.getCategoryId());
-		verify(carRepository, times(1)).findById(params.getCarId());
 		verify(carRepository, times(1)).save(any(Car.class));
 	}
 

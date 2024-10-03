@@ -46,6 +46,9 @@ dependencies {
     // Apache Commons Lang3 - 유틸리티 메소드 제공
     implementation 'org.apache.commons:commons-lang3:3.14.0'
 
+    // Swagger
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
+
     // MySQL
     runtimeOnly 'com.mysql:mysql-connector-j:8.3.0'
 

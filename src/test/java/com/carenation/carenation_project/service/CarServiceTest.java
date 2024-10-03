@@ -1,11 +1,21 @@
 package com.carenation.carenation_project.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import com.carenation.carenation_project.common.exception.CarenationException;
@@ -19,14 +29,6 @@ import com.carenation.carenation_project.entity.Category;
 import com.carenation.carenation_project.mapper.CarMapper;
 import com.carenation.carenation_project.repository.CarRepository;
 import com.carenation.carenation_project.repository.CategoryRepository;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 public class CarServiceTest {
@@ -45,7 +47,7 @@ public class CarServiceTest {
 		// given
 		CarRegistRequestDTO params = new CarRegistRequestDTO(1, "현대", "코나", 2024);
 		Category category = Category.builder()
-			.categoryId(1L)
+			.categoryId(1)
 			.name("경형 RV")
 			.build();
 		when(categoryRepository.findById(params.getCategoryId())).thenReturn(Optional.of(category));
@@ -54,8 +56,14 @@ public class CarServiceTest {
 		carService.registCar(params);
 
 		// then
-		verify(categoryRepository, times(1)).findById(params.getCategoryId());
-		verify(carRepository, times(1)).save(any(Car.class));
+		ArgumentCaptor<Car> carCaptor = ArgumentCaptor.forClass(Car.class);
+		verify(carRepository, times(1)).save(carCaptor.capture());
+		Car savedCar = carCaptor.getValue();
+		assertEquals(params.getManufacturer(), savedCar.getManufacturer());
+		assertEquals(params.getModelName(), savedCar.getModelName());
+		assertEquals(params.getManufactureYear(), savedCar.getManufactureYear());
+		assertTrue(savedCar.getRentalStatus());
+		assertEquals(category, savedCar.getCategories().iterator().next());
 	}
 
 	@Test
@@ -87,31 +95,41 @@ public class CarServiceTest {
 		assertEquals(ResultCode.NO_DATA_FOUND, carenationException.getResultCode());
 	}
 
-	// @Test
-	// void 자동차_조회_성공() {
-	// 	// given
-	// 	CarSearchRequestDTO params = new CarSearchRequestDTO(null, 1, "현대", null, 2024, null);
-	// 	when(carRepository.findAll(any(Specification.class), any(Sort.class)))
-	// 		.thenReturn(Collections.emptyList()); // 테스트에서는 빈 리스트 반환
-	//
-	// 	// when
-	// 	List<CarResponseDTO> result = carService.getCarList(params);
-	//
-	// 	// then
-	// 	assertTrue(result.isEmpty());
-	// 	verify(carRepository, times(1)).findAll(any(Specification.class), any(Sort.class));
-	// }
+	@Test
+	void 자동차_리스트_조회_성공() {
+		// given
+		CarSearchRequestDTO params = new CarSearchRequestDTO(null, "코나", 2024, 0, 10);
+		Car car = Car.builder()
+			.carId(1)
+			.modelName("코나")
+			.manufactureYear(2024)
+			.categories(new HashSet<>(List.of(Category.builder().categoryId(1).name("미니SUV").build())))
+			.rentalStatus(true)
+			.build();
+		Page<Car> cars = new PageImpl<>(List.of(car));
+		when(carRepository.findAll(any(Specification.class), any(Pageable.class)))
+			.thenReturn(cars);
+		when(carMapper.toCarResponseDTO(any(Car.class)))
+			.thenReturn(new CarResponseDTO(1, "미니SUV", "현대", "코나", 2024, true));
+
+		// when
+		Page<CarResponseDTO> result = carService.getCarList(params);
+
+		// then
+		assertEquals("코나", result.getContent().get(0).getModelName());
+		assertEquals("미니SUV", result.getContent().get(0).getCategoryName());
+	}
 
 	@Test
 	void 자동차_정보_수정_성공() {
 		// given
 		CarModifyRequestDTO params = new CarModifyRequestDTO(1, 2, "현대", "코나", 2024, false);
 		Category category = Category.builder()
-			.categoryId(2L)
+			.categoryId(2)
 			.name("미니SUV")
 			.build();
 		Car existingCar = Car.builder()
-			.carId(1L)
+			.carId(1)
 			.manufacturer("현대")
 			.modelName("코나")
 			.manufactureYear(2024)
@@ -150,11 +168,11 @@ public class CarServiceTest {
 		// given
 		CarModifyRequestDTO params = new CarModifyRequestDTO(1, 99999, "현대", "코나", 2024, false);
 		Category category = Category.builder()
-			.categoryId(2L)
+			.categoryId(2)
 			.name("미니SUV")
 			.build();
 		Car existingCar = Car.builder()
-			.carId(1L)
+			.carId(1)
 			.manufacturer("현대")
 			.modelName("코나")
 			.manufactureYear(2024)
